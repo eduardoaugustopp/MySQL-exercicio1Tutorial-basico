@@ -5,7 +5,7 @@
 
 > Não usei WAMP
 
-**(...) continua ->Curso MySQL #07 - Manipulando Linhas (UPDATE, DELETE e TRUNCATE)**
+**(...) continua ->Curso MySQL #14 - Modelo Relacional**
 
 > <img alt="" src="./img/configuracao.png" width="100%"></br> > <img alt="" src="./img/banco.png" width="100%"></br>
 
@@ -27,7 +27,7 @@
 - As tabelas guardam dados de coisas que tem características semelhantes;
 - Os dados que estão dentro das tabelas também tem um nome específico, que são registros;
 
-- **RESUMINDO** -> bancos de dados são conjuntos de tabelas e tabelas são conjuntos de registros e registros são compostos por campos, os campos no MySQL são chamados de colunas;
+- **`RESUMINDO** -> bancos de dados são conjuntos de tabelas e tabelas são conjuntos de registros e registros são compostos por campos, os campos no MySQL são chamados de colunas ou atributos;`\*\*
 
 > <img alt="" src="./img/criando.png" width="100%"></br>
 
@@ -292,6 +292,206 @@ drop table cursos;
 
 > <img alt="" src="./img/data.png" width="50%"></br>
 
+> MANIPULANDO REGISTROS = LINHAS = TUPLAS
+
+> <img alt="" src="./img/tabelas.png" width="100%"></br>
+
+> <img alt="" src="./img/linhas.png" width="100%"></br>
+
+- Não consegui manipular várias linhas ao mesmo tempo, um comando manipula uma linha mas consegui mexer dentro de uma linha, em várias colunas ao mesmo tempo;
+- 'UPDATE' - é atualize; 'SET' - é configure; 'WHERE' é onde; Modificar a tabela 'cursos' modificando o conteudo da coluna nome para 'HTML5' onde o 'idcurso' é igual a '1';
+
+```
+update cursos
+ set nome = 'HTML5'
+ WHERE idcurso = '1';
+```
+
+- 'LIMIT' - é para limitar quantas linhas vão poder ser afetadas, vai limitar a ação do meu comando; é uma segurança;
+
+> <img alt="" src="./img/linhasc.png" width="100%"></br>
+
+- O 'UPDATE' mexi em linhas existentes mas mantem elas lá;
+- 'DELETE FROM cursos' - apague da tabela cursos;
+
+> <img alt="" src="./img/delete.png" width="50%"></br>
+
+- 'TRUNCATE' - vai fazer uma truncagem, trucar uma tabela é apagar todos os registros;
+
+```
+truncate cursos;
+```
+
+- Diferença de 'DROP TABLE' e 'TRUNCATE', drop table apaga a tabela inteira, apaga os dados e apaga tambem a estrutura da tabela; o truncate apaga os dados mas mantem a estrutura la por isso não é 'DDL';
+
+> <img alt="" src="./img/data2.png" width="50%"></br>
+
+> GERENCIANDO CÓPIAS DE SEGURANÇA
+
+-'DUMP' - backup de um banco de dado; porque a base de dados não esta numa máquina, ela está num servidor; basicamente um dump é qual foi o passo a passo que quem crio o banco de dados fez para poder chegar ao banco de dados nesse estado que ele esta; basicamente vai criar uma lista de comandos;
+
+> <img alt="" src="./img/bkp.png" width="100%"></br>
+
+- Se não marcar essa opção não vai vir a criação do banco de dados e aí vai forçar você digite o primeiro e crie um banco de dados no servidor e só então possa importar um dump
+  > <img alt="" src="./img/bkp2.png" width="100%"></br>
+
+> USANDO O PHPMyAdmin ->
+
+- PHPMyAdmin -> é uma aplicação Web com o objetivo de facilitar e automatizar a criação de bancos de dados MySQL;
+  **PULEI O Curso MySQL #10 - PHPMyAdmin (Parte 2), NÃO É MEU FOCO NO MOMENTO**
+
+> OBTENDO DADOS DAS TABELAS
+
+> ORDENAÇÃO
+
+> <img alt="" src="./img/ordenacao.png" width="100%"></br> > <img alt="" src="./img/ordenacao2.png" width="100%"></br>
+
+- Para filtrar as colunas, tira o '\*' e coloca quais são as colunas que quer para aparecer, inclusive na ordem que quiser.
+  > <img alt="" src="./img/ordenacao3.png" width="100%"></br>
+
+> <img alt="" src="./img/linha.png" width="100%"></br>
+
+- Quero saber quais cursos foram lançados em 2016;
+
+```
+select * from cursos
+where ano = '2016'
+order by nome;
+```
+
+- Mostrar somente o ano e a carga;
+
+```
+select nome, carga from cursos
+where ano = '2016'
+order by nome;
+```
+
+- 'ResultSet' - é o resultado de uma consulta;
+  > <img alt="" src="./img/selecionando.png" width="100%"></br>
+- 'QUERY' - é uma pegunta, uma solicitação;
+  > <img alt="" src="./img/intervalos.png" width="100%"></br>
+- Operador 'BETWEEN' - entre uma coisa e outra;
+
+```
+SELECT nome, ano from cursos
+where ano between 2014 and 2016;
+```
+
+- Diferença entre 'IN' e 'BETWEEN' - no in vou poder colocar valores específicos, no between posso especificar faixas de valores;
+
+```
+select nome, descricao, ano from cursos
+where ano in (2014, 2016)
+order by ano;
+```
+
+> <img alt="" src="./img/in.png" width="100%"></br>
+
+> <img alt="" src="./img/combinando.png" width="100%"></br>
+
+- `DQL` - 'Data Query Language' - uma linguagem para perguntas, uma linguagem para questionamentos,
+
+> <img alt="" src="./img/data3.png" width="100%"></br>
+
+- `like` - é um operador;
+
+> <img alt="" src="./img/like.png" width="100%"></br>
+
+> <img alt="" src="./img/wild.png" width="100%"></br>
+
+> <img alt="" src="./img/wild2.png" width="100%"></br>
+
+> <img alt="" src="./img/wild3.png" width="100%"></br>
+
+- `_` - exige que tenha algum caractere aqui;
+- `ph%p%` - peguei todos os cursos que tem um nome começados com 'ph', '%' tenho nada ou alguma coisa termine com 'p' e que tenha alguma coisa no final '\_';
+
+```
+select * from cursos
+where nome like 'ph%p%_';
+```
+
+- `DISTINCT` - ele pega quais foram minhas ocorrências, quais são diferentes; vai considerar apenas uma ocorrência de cada valor dentro de registro;
+- Vai mostrar uma vez o '40':
+  > <img alt="" src="./img/distinct.png" width="100%"></br>
+
+> FUNÇÃO DE AGREGAÇÃO
+
+- `COUNT` - conta quantos registros aconteceu;
+
+> <img alt="" src="./img/count.png" width="100%"></br>
+
+> <img alt="" src="./img/max.png" width="100%"></br>
+
+> <img alt="" src="./img/min.png" width="100%"></br>
+
+- A função de agregação ela vai ter um número e vai te perguntar, qual curso teve esse número e vai colocar o curso que teve esse número;
+
+> <img alt="" src="./img/sum.png" width="100%"></br>
+
+- `AVG` - vem de Average que é média;
+  > <img alt="" src="./img/avg.png" width="100%"></br>
+
+> <img alt="" src="./img/distinct2.png" width="100%"></br>
+
+> <img alt="" src="./img/distinct3.png" width="100%"></br>
+
+> `AGRUPAMENTO`
+
+> <img alt="" src="./img/agrupando.png" width="100%"></br>
+
+- `GROUP BY` -> 'agrupado por';
+
+> <img alt="" src="./img/agrupando2.png" width="100%"></br>
+
+> <img alt="" src="./img/agrupando3.png" width="100%"></br>
+
+- `HAVING` - o having para o gupo 'BY' é mais ou menos semelhante ao 'where' para o 'select'; dentro do 'having' só pode trabalhar com o campo que você agrupo;
+  > <img alt="" src="./img/having.png" width="100%"></br>
+- Estou selecionando os anos da tabela de cursos, onde o total de aulas seja acima de 30, só quero selecionar esses, vou agrupar essa seleção por ano e dentro desse agrupamento eu só vou mostrar quem tem ano acima de 2013, ordenado pelo total aqui;
+- Selecionar, filtrar, agrupar e dizer dentro desse agrupamento qual você quer exibir, aí você usa o select, where, group by e having;
+
+```
+select ano, count(*) from cursos
+where totaulas > 30
+group by ano
+having ano > 2013
+order by count(*) desc;
+```
+
+> JUNTAR UM SELECT NO OUTRO
+
+- Estou selecionando a carga e o total de horas dos cursos onde o ano seja acima de 2015, vou agrupa-los por carga mas não quero mostrar quem tem carga baixa, quero mostrar somente quem está acima da carga média (a média da carga é 36.6);
+
+```
+select carga, count(*) from cursos
+where ano > 2015
+group by carga
+having carga > (select avg(carga) from cursos);
+                SAIDA: carga count(*)
+                        40      6
+                        50      1
+                        60      5
+```
+
+> RELACIONANDO AS TABELAS
+
+- `ENTIDADE` - uma entidade para um banco de dados é como se fosse um contêiner onde vou colocar dados sobre alguma coisa ou sobre alguma pessoa nesse meu caso aqui o meu contêiner gafanhoto vai conter dados de alunos dados de gafanhotos;
+
+> <img alt="" src="./img/entidade.png" width="80%"></br>
+
+- `ATRIBUTOS` - toda entidade possui uma coleção de atributos definidos, esses atributos vão compor os dados que compõem cada um dos elementos que estão dentro dessa entidade;
+
+**`DADOS SÃO REPRESENTADOS EM FORMA DE ATRIBUTOS ESSES CONJUNTOS DE ATRIBUTOS VÃO IDENTIFICAR TUPLAS VÃO IDENTIFICAR REGISTROS VÃO IDENTIFICAR COISAS QUE ESTÃO ARMAZENADAS DENTRO DE ENTIDADES`**
+
+- A primeira base do `modelo relacional` foi uso de chaves e essas chaves primárias, elas servem para identificar as tuplas e elas vão servir também para relacionar as entidades;
+
+- Existe uma relação entre um e outro e é claro existe uma entidade dominante e uma entidade relacionada a ela mas nada impede que eu faça leitura nos dois sentidos;
+
+- `Diagrama E-R:` -> ele vai mostrar como o modelo relacional está sendo aplicado dentro desse minimundo, dentro dessa minha possibiliade, dentro dessa minha situação que eu quero criar um banco de dados;
+  > <img alt="" src="./img/diagrama.png" width="50%"></br>
+
 ```
 mysql -u root -p
 
@@ -314,12 +514,14 @@ describe pessoas; ou des pessoas;
 
 status; (ve qual banco esta aberto)
 
+use cadastro;
+
 show tables;
 
 select * from pessoas;
 ```
 
-**(...) continua ->Curso MySQL #07 - Manipulando Linhas (UPDATE, DELETE e TRUNCATE)**
+**(...) continua ->Curso MySQL #14 - Modelo Relacional**
 
 ## �� Tecnologias
 
