@@ -5,8 +5,6 @@
 
 > Não usei WAMP
 
-**(...) continua ->Curso MySQL #14 - Modelo Relacional**
-
 > <img alt="" src="./img/configuracao.png" width="100%"></br> > <img alt="" src="./img/banco.png" width="100%"></br>
 
 > <img alt="" src="./img/pessoa.png" width="100%"></br>
@@ -27,7 +25,7 @@
 - As tabelas guardam dados de coisas que tem características semelhantes;
 - Os dados que estão dentro das tabelas também tem um nome específico, que são registros;
 
-- **`RESUMINDO** -> bancos de dados são conjuntos de tabelas e tabelas são conjuntos de registros e registros são compostos por campos, os campos no MySQL são chamados de colunas ou atributos;`\*\*
+- **`RESUMINDO -> bancos de dados são conjuntos de tabelas e tabelas são conjuntos de registros e registros são compostos por campos, os campos no MySQL são chamados de colunas ou atributos;`**
 
 > <img alt="" src="./img/criando.png" width="100%"></br>
 
@@ -83,10 +81,11 @@ CREATE TABLE pessoas (
 - Vamos cadastrar o dia que a pessoa nasceu em vez de cadastrar a idade dela;
 - Colocar a configuração de caracteres padrão na criação da tabela, para isso vamos colocar lá no final, no fechamento do parêntese;
 - Adicionar mais algumas 'constraints', lembrando que 'constraints' são regras que a gente vai definir para a criação de coisas dentro do meu banco de dados;
+
   > CONSTRAINTS ->
 - 'Not Null' -> significa que você vai ter que preencher os dados, por padrão se eu quiser cadastrar uma pessoa e não quiser informar por exemplo a data de nascimento dela, sem problema, por padrão; mas se você quiser obrigar, por exemplo que toda pessoa tenha nome, não tem como cadastrar uma pessoa, se ela não tiver nome, então nesses campos que são obrigatoriamente digitáveis, coloca a 'constraints' 'not null';
 - O sexo em vez de 'char', vou utilizar um tipo de coleção que é o 'enum', quando usa o 'set' ou 'enum', colocando entre parenteses, entre aspas os valores, separados por vírgula, estou dizendo quais são os valores que serão aceitos, então para sexo, ele só vai aceitar 'M' ou 'F', isso vai permitir que você defina a estrutura de forma um pouco mais rígida, para que o cara não coloque a letra 'A' por exemplo;
-- O peso que era float agora vou colocar com decima e vou colocar 5,2 entre parentese separados por vírgula; '5,2' -> imagina que sejam 5 casas ao todo; o segundo numero é a quantidade de numeros que vão ficar após a vírgula, então desses '5' '2' vão ficar após a vírgula, '3' antes da vírgula; com isso economiza espaço e configura qual a precisão exata que o número vai precisar ter;2 é a qauntidade de casa decimal;
+- O peso que era float agora vou colocar com decima e vou colocar 5,2 entre parentese separados por vírgula; '5,2' -> imagina que sejam 5 casas ao todo; o segundo numero é a quantidade de numeros que vão ficar após a vírgula, então desses '5' '2' vão ficar após a vírgula, '3' antes da vírgula; com isso economiza espaço e configura qual a precisão exata que o número vai precisar ter; 2 é a quantidade de casa decimal;
   > <img alt="" src="./img/peso.png" width="100%"></br>
 - Nacionalidade 'default 'Brasil'' -> se ninguém digitar nada, por padrão será Brasil;
 - 'id' -> Numa tabela é importante que defina pelo menos um dos campos, como um campo que chamamos de chave primaria, um campo 'chave primária' ele não se repete, então por exemplo você tem uma academia, você tem sua matrícula na academia, seu cadastro de pessoa física (CPF); para definir o 'id' como chave primaria, vai na última linha e coloca 'PRIMARY KEY';
@@ -490,38 +489,216 @@ having carga > (select avg(carga) from cursos);
 - Existe uma relação entre um e outro e é claro existe uma entidade dominante e uma entidade relacionada a ela mas nada impede que eu faça leitura nos dois sentidos;
 
 - `Diagrama E-R:` -> ele vai mostrar como o modelo relacional está sendo aplicado dentro desse minimundo, dentro dessa minha possibiliade, dentro dessa minha situação que eu quero criar um banco de dados;
+
   > <img alt="" src="./img/diagrama.png" width="50%"></br>
 
+- `n` = `CARDINALIDADE` - ela pode ser simples ou múltipla, um ou n; 'muitos para muitos'; 'n para n';
+
+  > <img alt="" src="./img/n.png" width="100%"></br>
+
+- Uma tupla não tem obrigatoriedade de ter uma outra tupla; classificação 'um-para-um':
+
+  > <img alt="" src="./img/tupla.png" width="100%"></br>
+
+- Relacionamento 'um-para-muitos';
+
+  > <img alt="" src="./img/tupla2.png" width="100%"></br>
+
+- O primeiro passo deve ser modelar as entidades com seus atributos e seus relacionamentos e depois classificar cada um dos relacionamentos, colocando cardinalidade nas suas entidades;
+
+- `CHAVE PRIMÁRIA` - é um atributo específico que identifica as 'tuplas';
+- `CHAVE ESTRANGEIRA` - entidade x com sua chave primária do outro lado entidade y com sua chave primária, se quiser fazer uma relação entre uma entidade e outra, relações são troca de chaves; 'chave estrangeira' era a 'chave primária' de alguém, veio de um lugar para outro;
+
+  > <img alt="" src="./img/estrangeira.png" width="100%"></br>
+
+- Basicamente criar relacionamentos entre tabelas é fazer troca de chaves, é pegar chave primária de um lado e colocar para outro lado;
+
+- Geralmente representa na esquerda as entidades dominantes; representei marido como dominante, peguei a chave primária da esposa e tranferi; 'E''cpf-esposa' - o nome não precisa ser o mesmo mas os dados precisam ser os mesmo, os atributos tem que ser compatíveis;
+
+- Regras para relacionamentos um-para-um -> decide qual entidade dominante, pega a chave primária da que não é dominante e jogo como chave estrangeira pra minha entidade dominante;
+
+  > <img alt="" src="./img/um.png" width="100%"></br>
+
+- A regra do relacionamento 'um-para-muitos' ou 'muitos-para-um' -> pega a chave primária do lado um e coloca no lado muitos como chave estrangeira;
+
+  > <img alt="" src="./img/regra.png" width="100%"></br>
+
+- Relacionamentos 'muitos-para-muitos' -> a regra é desmembrar esse relacionamento muitos-para-muitos em vários relacionamentos de um-para-muitos;
+
+- O relacionamento 'compra' viro uma 'entidade', compra tambem tem atributos; tem três entidades agora falta os relacionamentos, cria dois mini relacionamentos e coloca a cardinalidade; o que tinha de relacionamento muitos-para-muitos se transformou em nesse conjunto relacional;
+
+> <img alt="" src="./img/muitos.png" width="100%"></br> > <img alt="" src="./img/muitos2.png" width="100%"></br>
+
+> RELACIONANDO AS TABELAS
+
+> <img alt="" src="./img/dump.png" width="100%"></br>
+
+- `ENGINE` - máquina de criação de tabelas;
+- `InnoDB` - é um mecanismo, que vai permitir a criação de tabelas com algumas características a principal características desse 'engine' é suportar chaves estrangeiras e também permite a compatibilidade com os quatro conceitos fundamentais de uma boa transação;
+
+- `TRANSAÇÃO` - tudo aquilo que você pode pedir para um banco de dados e ele executar e te dar uma resposta; toda ação; e uma transação para ela acontecer precisa seguir as quatro principais regras: `ACID`;
+
+**`É UM PRINCÍPIO FUNDAMENTAL DA TEORIA DE BANCO DE DADOS:`**
+
+- `ATOMICIDADE` -> uma transação tem que ser atômica, ela não deve ser dividida em sub tarefas; ou toda tarefa é feita ou nada vai ser considerado;
+- `CONSISTÊNCIA` -> um banco de dados que estava consistente anteriormente, tem que continuar consistente após uma transação; não pode ter falhas se isso acontecer volta para o estado anterior;
+- `ISOLAMNETO` -> quando tem duas transações acontecendo em paralelo, elas devem acontecer como se tivessem sendo executadas de forma isoladas;
+- `DURABILIDADE` -> ela tem que ser durável o tempo que for necessário; por exemplo se você salvou dado de um cliente, você quer que esse dado do cliente fique lá o tempo necessário que precise dele;
+
+- Sempre que olhar um rêtangulo expande ele e imagine instâncias dentro dele;
+
+**`NÃO CONSEGUI IMPORTAR O BANCO PELO 'SERVER' 'DATA IMPORT' QUE FOI MOSTRADO NA AULA, FIZ DESSA MANEIRA:`**
+
+- 'CREATE SCHEMA - 'cadastro'' -> 'Open SQL Script' -> executa o dump com 'Ctrl+Shift+Enter';
+
+- Primeiro adiciona um campo 'cursopreferido', agora precisa dizer que esse curso preferido é uma chave estrangeira para poder fazer aquela ligação; para fazer isso precisa de outro alter table `ADD FOREIGN KEY (cursopreferido)` -> adicionando cursopreferido como uma chave estrangeira, aí precisa indicar qual a referência `references cursos(idcurso)` -> significa que o cursopreferido da tabela de gafanhotos está ligado com idcurso da tabela de cursos;
+
 ```
-mysql -u root -p
+alter table gafanhotos add cursopreferido int;
 
-SHOW DATABASES;
-
-CREATE DATABASE cadastro;
-
-drop database cadastro;
-
-CREATE TABLE pessoas (
-    nome varchar (30),
-    idade tinyint(3),
-    sexo char(1),
-    peso float,
-    altura float,
-    nacionalidade varchar(20)
-);
-
-describe pessoas; ou des pessoas;
-
-status; (ve qual banco esta aberto)
-
-use cadastro;
-
-show tables;
-
-select * from pessoas;
+alter table gafanhotos
+add foreign key (cursopreferido)
+references cursos(idcurso);
 ```
 
-**(...) continua ->Curso MySQL #14 - Modelo Relacional**
+- Precisa fazer uma ligação entre o cursopreferido que é chave estrangeira e o idcurso da tabela curso que é a chave primaria para a gente poder fazer aquela ligação entre chave primaria e chave estrangeira que é extremamente necessária para garantir a integridade referencial;
+
+> <img alt="" src="./img/mul.png" width="100%"></br>
+
+- `MUL` -> o cursopreferido esta com 'int' que é o mesmo tipo e no 'key' tenho `MUL` - é a representação de uma chave mútipla, no nosso caso aqui uma chave estrangeira;
+
+- Agora precisa começar a cadastrar os cursos preferidos de cada aluno;
+- O meu aluno 1 que é o Daniel vai gostar do curso 6 que é o MySQL:
+
+```
+update gafanhotos set cursopreferido = '6' where id = '1';
+```
+
+- Fazendo sem comando:
+
+  > <img alt="" src="./img/sem.png" width="100%"></br>
+
+- Quando cria chave estrangeira não vemos muita utilidade, na prática vamos tentar apagar o curso de MySQL;
+
+```
+DELETE FROM CURSOS where id = '6';
+              SAÍDA: 'erro Constraint FOREIGN KEY', esse erro foi de integridade referencial;
+```
+
+- O curso de 'PHP' é o único que é possível apagar porque ele não tem relação com nenhum;
+
+> <img alt="" src="./img/php.png" width="100%"></br>
+
+> INTEGRIDADE REFERENCIAL -> eu não consigo modificar um campo se ele for afetar a minha `transação` se essa transação começar a gerar inconsistência que seria o caso ele não deixaria acontecer;
+
+- Se executa select em gafanhotos eu vejo os dados do gafanhoto e vejo o curso que ele prefere, só que não vejo o nome do curso que ele prefere e sim o código;
+
+```
+select nome, cursopreferido from gafanhotos;
+        SAÍDA: Daniel Morais	    6
+               Talita Nascimento	8
+```
+
+- `JUNÇÕES;`
+
+- Ele junto gafanhoto e curso = cada aluno vai ser junto com todos os cursos, o que precisa fazer é filtrar essas coisas, para ter um filtro tem uma 'cláusula' sempre que eu usar `JOIN` que é a clásula `ON`aí coloca quais são as relações; o gafanhoto se liga ao curso através de suas chaves estrangeira e primária;
+
+```
+select gafanhotos.nome, gafanhotos.cursopreferido, cursos.nome, cursos.ano
+from gafanhotos join cursos;
+```
+
+```
+select gafanhotos.nome, gafanhotos.cursopreferido, cursos.nome, cursos.ano
+from gafanhotos join cursos
+on cursos.idcurso = gafanhotos.cursopreferido;
+```
+
+> <img alt="" src="./img/join.png" width="100%"></br>
+
+- `AS` -> apelidos de coluna; se quiser não precisa colocar 'inner';
+
+```
+select g.nome, c.nome, c.ano
+from gafanhotos as g inner join cursos as c
+on c.idcurso = g.cursopreferido
+order by g.nome;
+```
+
+> <img alt="" src="./img/as.png" width="100%"></br>
+
+- O que interessa no 'inner join' é apenas as linhas coloridas;
+
+  > <img alt="" src="./img/inner.png" width="100%"></br>
+
+- `OUTER JOIN` -> ele vai tratar exatamente os conceitos do inner junto com aqueles dados que não tem relação com nenhuma outra tabela;
+
+- A esquerda do 'join' esta a tabela gafanhotos e a direita a tabela cursos; se eu quiser mostrar todos gafanhotos inclusive aqueles que não preferem nada, vou utilizar o `outher join` só que tenho duas possibilidades ou vou considerar gafanhotos como preferencial ou cursos, considerando primeiro gafanhotos `LEFT`; SAÍDA: mostrou todos os alunos, idependente de quem prefere ou não:
+- Se tirar 'outer' funciona da mesma maneira:
+
+```
+select g.nome, c.nome, c.ano
+from gafanhotos as g LEFT outer join cursos as c
+on c.idcurso = g.cursopreferido
+order by g.nome;
+```
+
+> <img alt="" src="./img/left.png" width="100%"></br>
+
+- `RIGHT` - ele esta mostrando todos os cursos independente se ninguém prefere:
+  > <img alt="" src="./img/right.png" width="100%"></br>
+
+> <img alt="" src="./img/join2.png" width="100%"></br>
+
+**`Se coloca somente 'JOIN' estou me referindo ao 'inner join', se quiser referir ao 'outer join' coloca ''right' ou 'left' JOIN', assim que funciona o relacionamento entre tabelas mostrando determinados dados de acordo que eu precise na minha necessidade`**
+
+> Muitas instâncias de um lado e muitas do outro e elas estão se relacionando;
+
+- Diagrama onde 1 gafanhoto prefere 1 determinado curso e cada curso pode ser preferido por vários gafanhoto; você não prefere muitas coisas você prefere uma coisa; é o seu curso preferido, isso nos gera um relacionamento de uma instância de um lado, com muitas instâncias de outro.
+
+> <img alt="" src="./img/diagrama2.png" width="100%"></br>
+
+> <img alt="" src="./img/assiste.png" width="100%"></br>
+
+```
+create table gafanhoto_assiste_curso (
+		id int not null auto_increment,
+		data date,
+        idgafanhoto int,
+        idcurso int,
+        PRIMARY KEY (id),
+        FOREIGN KEY (idgafanhoto) REFERENCES gafanhotos(id),
+		FOREIGN KEY (idcurso) REFERENCES cursos(idcurso)
+ ) default charset = utf8;
+```
+
+> <img alt="" src="./img/diagrama3.png" width="100%"></br>
+
+> <img alt="" src="./img/muitos3.png" width="100%"></br>
+
+> ISERINDO REGISTROS
+
+- Esse 'default' identifica que meu id do gafanhoto_assiste_curso vai ser gerado automaticamente, um determinado gafanhoto '1' começou a assistir o curso '2' no dia 01/03/2014:
+
+```
+insert into gafanhoto_assiste_curso values
+(default, '2014-03-01', '1', '2');
+```
+
+> <img alt="" src="./img/join3.png" width="100%"></br>
+
+```
+select g.nome, c.nome from gafanhotos g
+join gafanhoto_assiste_curso a
+on g.id = a.idgafanhoto
+join cursos c
+on c.idcurso = a.idcurso
+order by g. nome;
+          SAÍDA:Daniel Morais	    Algoritmos
+                Emerson Gabriel 	MySQL
+```
+
+- Puxando dado de 3 tabelas, preciso usar 2 'JOIN';
 
 ## �� Tecnologias
 
