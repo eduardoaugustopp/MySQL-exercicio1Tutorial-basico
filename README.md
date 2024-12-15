@@ -5,6 +5,55 @@
 
 > Não usei WAMP
 
+- **``INNER JOIN:``** Retorna linhas quando houver uma correspondência em ambas as tabelas A e B;
+````
+SELECT *
+FROM A
+INNER JOIN B ON A.key = B.key
+````
+- **``FULL JOIN:``** Retorna todas as linhas de A e B, com NULLs onde não houver correspondência;
+````
+SELECT *
+FROM A
+FULL JOIN B ON A.key = B.key
+````
+- **``SELECT WHERE A.key IS NULL OR B.key IS NULL:``** Retorna todas as linhas que não possuem uma correspondência em uma das tabelas;
+````
+SELECT *
+FROM A
+FULL JOIN B ON A.key = B.key
+WHERE A.key IS NULL OR B.key IS NULL
+````
+- **``LEFT JOIN:``** Retorna todas as linhas de A e as correspondências em B;
+````
+SELECT *
+FROM A
+LEFT JOIN B ON A.key = B.key
+````
+- **``LEFT JOIN WHERE B.key IS NULL:``** Retorna todas as linhas de A que não possuem correspondência em B;
+````
+SELECT *
+FROM A
+LEFT JOIN B ON A.key = B.key
+WHERE B.key IS NULL
+````
+- **``RIGHT JOIN:``** Retorna todas as linhas de B e as correspondências em A;
+````
+SELECT *
+FROM A
+RIGHT JOIN B ON A.key = B.key
+````
+- **``RIGHT JOIN WHERE B.key IS NULL:``** Retorna todas as linhas de B que não possuem correspondência em A;
+````
+SELECT *
+FROM A
+RIGHT JOIN B ON A.key = B.key
+WHERE B.key IS NULL
+````
+
+> <img alt="" src="./img/dados.jpg" width="50%"></br>
+
+
 > <img alt="" src="./img/configuracao.png" width="100%"></br> > <img alt="" src="./img/banco.png" width="100%"></br>
 
 > <img alt="" src="./img/pessoa.png" width="100%"></br>
