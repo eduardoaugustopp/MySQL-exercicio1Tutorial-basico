@@ -5,54 +5,207 @@
 
 > Não usei WAMP
 
-- **``INNER JOIN:``** Retorna linhas quando houver uma correspondência em ambas as tabelas A e B;
-````
+- **`INNER JOIN:`** Retorna linhas quando houver uma correspondência em ambas as tabelas A e B;
+
+```
 SELECT *
 FROM A
 INNER JOIN B ON A.key = B.key
-````
-- **``FULL JOIN:``** Retorna todas as linhas de A e B, com NULLs onde não houver correspondência;
-````
+```
+
+- **`FULL JOIN:`** Retorna todas as linhas de A e B, com NULLs onde não houver correspondência;
+
+```
 SELECT *
 FROM A
 FULL JOIN B ON A.key = B.key
-````
-- **``SELECT WHERE A.key IS NULL OR B.key IS NULL:``** Retorna todas as linhas que não possuem uma correspondência em uma das tabelas;
-````
+```
+
+- **`SELECT WHERE A.key IS NULL OR B.key IS NULL:`** Retorna todas as linhas que não possuem uma correspondência em uma das tabelas;
+
+```
 SELECT *
 FROM A
 FULL JOIN B ON A.key = B.key
 WHERE A.key IS NULL OR B.key IS NULL
-````
-- **``LEFT JOIN:``** Retorna todas as linhas de A e as correspondências em B;
-````
+```
+
+- **`LEFT JOIN:`** Retorna todas as linhas de A e as correspondências em B;
+
+```
 SELECT *
 FROM A
 LEFT JOIN B ON A.key = B.key
-````
-- **``LEFT JOIN WHERE B.key IS NULL:``** Retorna todas as linhas de A que não possuem correspondência em B;
-````
+```
+
+- **`LEFT JOIN WHERE B.key IS NULL:`** Retorna todas as linhas de A que não possuem correspondência em B;
+
+```
 SELECT *
 FROM A
 LEFT JOIN B ON A.key = B.key
 WHERE B.key IS NULL
-````
-- **``RIGHT JOIN:``** Retorna todas as linhas de B e as correspondências em A;
-````
+```
+
+- **`RIGHT JOIN:`** Retorna todas as linhas de B e as correspondências em A;
+
+```
 SELECT *
 FROM A
 RIGHT JOIN B ON A.key = B.key
-````
-- **``RIGHT JOIN WHERE B.key IS NULL:``** Retorna todas as linhas de B que não possuem correspondência em A;
-````
+```
+
+- **`RIGHT JOIN WHERE B.key IS NULL:`** Retorna todas as linhas de B que não possuem correspondência em A;
+
+```
 SELECT *
 FROM A
 RIGHT JOIN B ON A.key = B.key
 WHERE B.key IS NULL
-````
+```
 
 > <img alt="" src="./img/dados.jpg" width="50%"></br>
 
+## Dicas que peguei no Linkedin
+
+> <img alt="" src="./img/linkedin.png" width="60%"></br>
+
+### Bloqueio transacional para evitar condições de corrida
+
+- A primeira dica que escolhi trazer para cá é simples, mas ela é tão útil que também será utilizada na última dica desta publicação.
+
+- Sempre que vamos atualizar linhas em um banco de dados, uma solicitação é validada, a linha indicada é carregada na memória, mesclada com os novos dados e, finalmente, salva no banco de dados novamente. Como os servidores podem executar várias solicitações simultaneamente, eventualmente iremos nos deparar com uma condição de corrida, onde as validações e suposições executadas não são mais válidas por causa dos dados da nova linha naquele momento.
+
+- Para resolver esse problema, as linhas podem ser carregadas com um bloqueio exclusivo do banco de dados dentro de uma transação com a extensão especial FOR UPDATE. Apenas uma transação poderá obter o bloqueio exclusivo. Todos os bloqueios são liberados automaticamente quando a transação é confirmada (commit), revertida (rollback) ou a conexão é encerrada/perdida, o que resulta em uma reversão.
+
+```sql
+START TRANSACTION;
+
+SELECT balance FROM account WHERE account_id = 7 FOR UPDATE;
+```
+
+### Condições fantasmas para colunas não indexadas
+
+- Índices perfeitos não podem ser criados para cada consulta por causa de sua sobrecarga. A solução é adicionar condições fantasmas a essas consultas, o que pode levar o banco de dados a usar índices melhores.
+
+- Condições fantasmas são suportadas por índice e não alteram os resultados. Essas condições são adicionadas apenas para ajudar o banco de dados a encontrar a maneira mais eficiente de consultar os dados. Para definir uma condição fantasma, precisamos entender o domínio.
+
+- Vamos usar como exemplo um filtro aberto que o usuário pode escolher diferentes combinações, e que gerou essa consulta:
+
+```sql
+SELECT *
+FROM parcels
+WHERE status = 'open' AND insurance = 1;
+```
+
+- Nesse caso, o banco de dados pode usar o índice em status ou insurance para encontrar linhas correspondentes para a condição selecionada pelo usuário. No entanto, qualquer um dos índices é muito amplo, então muitas linhas ainda terão que ser filtradas após a aplicação do índice. Um índice de várias colunas em ambas as linhas não deve ser adicionado porque é uma combinação rara de filtros selecionados.
+
+- Ao aplicar o conhecimento de domínio, o fato de que qualquer parcela segurada (insurance = 1) é sempre do type AD ou GV pode ser inferido. A consulta agora será executada muito mais rápido porque um índice existente em status e type é aplicável por causa da nova condição. Adicionar condições fantasmas pode resultar no banco de dados usando índices mais eficientes, mas não deixará as consultas mais lentas. A única exceção são as consultas somente de índice, que são muito raras na realidade.
+
+```sql
+SELECT *
+FROM parcels
+WHERE status = 'open' AND insurance = 1 AND type IN('AD', 'GV');
+```
+
+### Índices descendentes
+
+- Para índices de coluna única, você não precisa alterar a direção de ordenação do índice, pois um índice pode ser escaneado para frente e para trás. Mas para índices de várias colunas com ordenação mista, especificar a ordenação correta das colunas fará uma grande diferença no desempenho.
+
+```sql
+SELECT * FROM highscores ORDER BY score DESC, created_at ASC LIMIT 10;
+
+-- Índice não será utilizado para ordenação:
+CREATE INDEX highscores_wrong ON highscores (score, created_at);
+
+-- Índice será utilizado para ordenação:
+CREATE INDEX highscores_correct ON highscores (score DESC, created_at ASC);
+```
+
+### Índices baseados em função
+
+- Uma expressão como WHERE LOWER(email) não usará um índice criado para a coluna email. Ao criar um índice baseado em função (índice funcional), você pode usar essa condição com suporte total a índices.
+
+```sql
+-- Não usará o índice:
+CREATE INDEX users_email ON users (email);
+SELECT * FROM users WHERE lower(email) = 'test@example.com';
+
+-- Usará o índice:
+-- MySQL (a função precisa estar entre parênteses)
+CREATE INDEX users_email_lower ON users ((lower(email)));
+SELECT * FROM users WHERE lower(email) = 'test@example.com';
+
+-- PostgreSQL
+CREATE INDEX users_email_lower ON users (lower(email));
+SELECT * FROM users WHERE lower(email) = 'test@example.com';
+```
+
+### Evitar problemas de bloqueio para atualizações em contadores
+
+- Como o único problema é atualizar um único contador simultaneamente, ele pode ser duplicado muitas vezes para que cada consulta esteja atualizando um contador diferente. A abordagem para fazer isso é simples:
+
+- 1. Crie uma nova tabela que armazenará muitos contadores para, por exemplo, cada visualização de página, substituindo o único contador por uma coluna fanout que distribuirá os bloqueios:
+
+```sql
+CREATE TABLE pageviews_counts (
+  url varchar(255) PRIMARY KEY,
+  fanout smallint NOT NULL,
+  count int
+);
+
+CREATE UNIQUE INDEX pageviews_slots ON pageviews (
+  url, fanout
+);
+```
+
+- 2. Substitua a instrução update por uma instrução insert. Para não inserir milhares de novas linhas naquela tabela, elas são salvas para um parâmetro fanout específico (por exemplo, 100 contadores) e incrementadas quando já existem. A probabilidade de contenção de bloqueio foi reduzida em 100 vezes.
+
+```sql
+-- Antes:
+UPDATE pageviews SET count = count + 1 WHERE url = '/home';
+
+-- Depois:
+INSERT INTO pageviews_counts (
+  url, fanout, count
+) VALUES (
+  '/home', FLOOR(RAND() * 100), 1
+) ON DUPLICATE KEY UPDATE count = count + VALUES(count);
+```
+
+- 3. Mova periodicamente as contagens resumidas da tabela pageviews_counts para a tabela pageviews.
+
+- Essa abordagem é uma melhoria significativa para atualizar diretamente o valor do contador. No entanto, ainda pode haver contenção de bloqueio ao inserir a mesma linha. Uma maneira de reduzir essa probabilidade é aumentar o fanout para distribuir o processo de contagem em mais linhas. Como alternativa, você pode cooperar com o sistema de bloqueio do banco de dados usando uma transação e tentando atualizar um contador que não está bloqueado no momento:
+
+- 4. Você solicita ao banco de dados as linhas de contadores existentes que não estão bloqueadas por nenhuma outra consulta ou transação:
+
+```sql
+SELECT fanout
+FROM pageviews_count
+WHERE url = '/home'
+LIMIT 1
+FOR UPDATE SKIP LOCKED
+```
+
+- 5. Quando uma linha é retornada, ela é usada com uma consulta UPDATE simples:
+
+```java
+UPDATE pageviews_counts
+SET count = count + 1
+WHERE url = '/home' AND fanout = 4
+```
+
+- 6. Quando nenhuma linha é retornada, todos os parâmetros fanout existentes são bloqueados ou não existe nenhuma linha. Você tem que voltar para a abordagem padrão:
+
+```sql
+INSERT INTO pageviews_counts (
+  url, fanout, count
+) VALUES (
+  '/home', FLOOR(RAND() * 100), 1
+) ON DUPLICATE KEY UPDATE count = count + VALUES(count);
+```
+
+**Aviso: Você não precisa usar seu banco de dados principal para tudo. Para este exemplo, um servidor Redis teria sido uma escolha válida, que pode facilmente fazer dezenas de milhares de incrementos a cada segundo sem nenhuma otimização necessária.**
 
 > <img alt="" src="./img/configuracao.png" width="100%"></br> > <img alt="" src="./img/banco.png" width="100%"></br>
 
@@ -132,6 +285,7 @@ CREATE TABLE pessoas (
 - Adicionar mais algumas 'constraints', lembrando que 'constraints' são regras que a gente vai definir para a criação de coisas dentro do meu banco de dados;
 
   > CONSTRAINTS ->
+
 - 'Not Null' -> significa que você vai ter que preencher os dados, por padrão se eu quiser cadastrar uma pessoa e não quiser informar por exemplo a data de nascimento dela, sem problema, por padrão; mas se você quiser obrigar, por exemplo que toda pessoa tenha nome, não tem como cadastrar uma pessoa, se ela não tiver nome, então nesses campos que são obrigatoriamente digitáveis, coloca a 'constraints' 'not null';
 - O sexo em vez de 'char', vou utilizar um tipo de coleção que é o 'enum', quando usa o 'set' ou 'enum', colocando entre parenteses, entre aspas os valores, separados por vírgula, estou dizendo quais são os valores que serão aceitos, então para sexo, ele só vai aceitar 'M' ou 'F', isso vai permitir que você defina a estrutura de forma um pouco mais rígida, para que o cara não coloque a letra 'A' por exemplo;
 - O peso que era float agora vou colocar com decima e vou colocar 5,2 entre parentese separados por vírgula; '5,2' -> imagina que sejam 5 casas ao todo; o segundo numero é a quantidade de numeros que vão ficar após a vírgula, então desses '5' '2' vão ficar após a vírgula, '3' antes da vírgula; com isso economiza espaço e configura qual a precisão exata que o número vai precisar ter; 2 é a quantidade de casa decimal;
